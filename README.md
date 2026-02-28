@@ -71,6 +71,15 @@ The script fetches from the Meteoblue API, normalizes the response the same way 
 3. **Settings** → **Devices & services** → **Add integration** → search for **Meteoblue**.
 4. Enter your API key and location, then check that the **Meteoblue** weather entity appears and shows current and forecast data.
 
+## Versioning and updates
+
+- The integration version is set in **`custom_components/meteoblue/manifest.json`** (`version` field).
+- **HACS** uses this version to show “Update available” when you have an older copy and a newer version is on the default branch.
+- To release a new version:
+  1. Bump `version` in `custom_components/meteoblue/manifest.json` (e.g. `1.0.1`).
+  2. Add an entry to [CHANGELOG.md](CHANGELOG.md).
+  3. Commit, push, and optionally create a **Git tag** (e.g. `v1.0.1`) or a **GitHub Release** so users can see the change in HACS and on the repo.
+
 ## Requirements
 
 - Home Assistant 2024.x or newer
