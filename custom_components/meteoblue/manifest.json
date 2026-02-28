@@ -1,6 +1,6 @@
 {
   "domain": "meteoblue",
-  "name": "Meteoblue",
+  "name": "YA Meteoblue weather",
   "codeowners": ["@jonaubf"],
   "config_flow": true,
   "documentation": "https://github.com/jonaubf/ya_meteo_blue",
