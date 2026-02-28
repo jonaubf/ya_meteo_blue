@@ -92,6 +92,8 @@ class MeteoblueWeatherEntity(
         self._entry = entry
         self._attr_name = "Meteoblue"
         self._attr_unique_id = f"{entry.entry_id}-weather"
+        lat, lon = coordinator._lat_lon()
+        self._attr_extra_state_attributes = {"latitude": lat, "longitude": lon}
 
     @callback
     def _handle_coordinator_update(self) -> None:
@@ -124,6 +126,9 @@ class MeteoblueWeatherEntity(
         day_data = data.get("data_day") or {}
         if day_data and (day_data.get("time") or []) and (day_data.get("uvindex") or []):
             self._attr_uv_index = _safe_index(day_data["uvindex"], 0)
+
+        lat, lon = self.coordinator._lat_lon()
+        self._attr_extra_state_attributes = dict(self._attr_extra_state_attributes or {}, latitude=lat, longitude=lon)
 
     @property
     def available(self) -> bool:

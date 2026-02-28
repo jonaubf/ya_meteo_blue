@@ -35,6 +35,16 @@ Home Assistant integration that adds a weather entity using the [Meteoblue](http
 
 After setup, a **Meteoblue** weather entity appears. You can change the location later via the integration’s **Configure** option.
 
+### Which coordinates are used?
+
+The weather entity exposes **latitude** and **longitude** in its state attributes. To check them:
+
+1. **Developer Tools** → **States**
+2. Find the `weather.meteoblue` entity and click it
+3. In **Attributes** you’ll see `latitude` and `longitude` — that’s exactly what the integration sends to the Meteoblue API
+
+Compare these with the coordinates on [meteoblue.com](https://www.meteoblue.com) for your place. If they differ, either reconfigure the integration (use “Use Home Assistant location” or enter the same lat/lon as on the website) or change the location in **Settings** → **Devices & services** → **Meteoblue** → **Configure**.
+
 ## Local testing (without Home Assistant)
 
 From the project root you can verify the API and response parsing (use your own API key; DEMOKEY may not work):

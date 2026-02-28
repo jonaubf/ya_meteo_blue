@@ -1,0 +1,2 @@
+# For local check script (scripts/check_meteoblue.py)
+aiohttp>=3.8.0
