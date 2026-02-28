@@ -10,8 +10,9 @@ from __future__ import annotations
 
 import argparse
 import asyncio
-import json
 import sys
+from datetime import datetime, timezone
+from zoneinfo import ZoneInfo
 
 try:
     import aiohttp
@@ -57,8 +58,53 @@ def safe(lst: list | None, i: int, default=None):
     return default if v is None else v
 
 
-async def run(api_key: str, lat: float, lon: float) -> None:
+def _parse_time(s: str | None) -> datetime | None:
+    if not s:
+        return None
+    try:
+        s = str(s).strip()
+        if " " in s:
+            return datetime.strptime(s, "%Y-%m-%d %H:%M")
+        return datetime.strptime(s, "%Y-%m-%d")
+    except (TypeError, ValueError):
+        return None
+
+
+def _current_index(times: list[str], time_zone: str | None) -> int:
+    """
+    Index of the hourly slot that contains current time.
+    If time_zone is set, API times are in that zone (naive local); else UTC.
+    """
+    if not times:
+        return 0
+    if time_zone:
+        try:
+            tz = ZoneInfo(time_zone)
+            now = datetime.now(tz).replace(minute=0, second=0, microsecond=0)
+        except Exception:
+            now = datetime.now(timezone.utc).replace(minute=0, second=0, microsecond=0)
+            tz = timezone.utc
+    else:
+        now = datetime.now(timezone.utc).replace(minute=0, second=0, microsecond=0)
+        tz = timezone.utc
+    idx = 0
+    for i, s in enumerate(times):
+        dt = _parse_time(s)
+        if dt is None:
+            continue
+        dt_aware = dt.replace(tzinfo=tz)
+        if dt_aware <= now:
+            idx = i
+        else:
+            break
+    return idx
+
+
+async def run(api_key: str, lat: float, lon: float, tz: str | None) -> None:
     url = f"{API_BASE_URL}?lat={lat}&lon={lon}&apikey={api_key}&format=json"
+    if tz:
+        from urllib.parse import quote
+        url += f"&tz={quote(tz, safe='')}"
     print(f"Fetching: {url.replace(api_key, '***')}")
     async with aiohttp.ClientSession() as session:
         async with session.get(url, timeout=aiohttp.ClientTimeout(total=API_TIMEOUT)) as resp:
@@ -84,10 +130,10 @@ async def run(api_key: str, lat: float, lon: float) -> None:
     print("Daily intervals:", len(times_day))
 
     if times_1h:
-        i = 0
+        i = _current_index(times_1h, tz)
         cond = PICTOCODE_HOURLY.get(safe(h.get("pictocode"), i) or 0, "cloudy")
-        print("\n--- Current (first hour) ---")
-        print("  time:", safe(times_1h, i))
+        print("\n--- Current (hour containing now) ---")
+        print("  index:", i, "  time:", safe(times_1h, i))
         print("  condition:", cond)
         print("  temperature:", safe(h.get("temperature"), i))
         print("  humidity:", safe(h.get("relativehumidity"), i))
@@ -109,8 +155,9 @@ def main() -> None:
     p.add_argument("--api-key", default="DEMOKEY", help="API key (default: DEMOKEY; use your own if you get 403)")
     p.add_argument("--lat", type=float, default=47.56, help="Latitude")
     p.add_argument("--lon", type=float, default=7.57, help="Longitude")
+    p.add_argument("--tz", default=None, help="Timezone for API (e.g. Europe/Kyiv); response times match this")
     args = p.parse_args()
-    asyncio.run(run(args.api_key, args.lat, args.lon))
+    asyncio.run(run(args.api_key, args.lat, args.lon, args.tz))
 
 
 if __name__ == "__main__":

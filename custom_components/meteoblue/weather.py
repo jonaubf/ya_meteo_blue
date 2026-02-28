@@ -5,6 +5,7 @@ from __future__ import annotations
 from datetime import datetime
 import logging
 from typing import Any
+from zoneinfo import ZoneInfo
 
 from homeassistant.components.weather import (
     Forecast,
@@ -61,6 +62,32 @@ def _parse_iso_datetime(s: str | None) -> datetime | None:
         return None
 
 
+def _current_conditions_index(times: list[str], time_zone: str) -> int:
+    """
+    Return the hourly data index that represents current conditions.
+    API returns times in the requested timezone (or UTC). We pick the slot
+    for the current hour so the temperature matches "now" on the website.
+    """
+    if not times:
+        return 0
+    try:
+        tz = ZoneInfo(time_zone)
+    except Exception:
+        return 0
+    now = datetime.now(tz).replace(minute=0, second=0, microsecond=0)
+    idx = 0
+    for i, s in enumerate(times):
+        dt = _parse_iso_datetime(s)
+        if dt is None:
+            continue
+        # Assume API times are in the same timezone (naive local)
+        if dt.replace(tzinfo=tz) <= now:
+            idx = i
+        else:
+            break
+    return idx
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     config_entry: ConfigEntry,
@@ -110,7 +137,7 @@ class MeteoblueWeatherEntity(
         times = h.get("time") or []
         if not times:
             return
-        idx = 0
+        idx = _current_conditions_index(times, self.hass.config.time_zone)
         pictocode = _safe_index(h.get("pictocode"), idx)
         is_daylight = _safe_index(h.get("isdaylight"), idx, 1)
         self._attr_native_temperature = _safe_index(h.get("temperature"), idx)
@@ -128,7 +155,13 @@ class MeteoblueWeatherEntity(
             self._attr_uv_index = _safe_index(day_data["uvindex"], 0)
 
         lat, lon = self.coordinator._lat_lon()
-        self._attr_extra_state_attributes = dict(self._attr_extra_state_attributes or {}, latitude=lat, longitude=lon)
+        current_time_slot = _safe_index(times, idx) if times else None
+        self._attr_extra_state_attributes = dict(
+            self._attr_extra_state_attributes or {},
+            latitude=lat,
+            longitude=lon,
+            current_conditions_time=current_time_slot,
+        )
 
     @property
     def available(self) -> bool:

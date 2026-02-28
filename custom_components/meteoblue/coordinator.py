@@ -5,6 +5,7 @@ from __future__ import annotations
 import logging
 from datetime import timedelta
 from typing import Any
+from urllib.parse import quote
 
 import aiohttp
 
@@ -36,12 +37,16 @@ def _get_coordinates(entry: ConfigEntry) -> tuple[float, float]:
 
 
 async def _fetch_meteoblue(
-    api_key: str, lat: float, lon: float, session: aiohttp.ClientSession
+    api_key: str,
+    lat: float,
+    lon: float,
+    session: aiohttp.ClientSession,
+    time_zone: str | None = None,
 ) -> dict[str, Any]:
     """Fetch basic-1h and basic-day data in one request."""
-    url = (
-        f"{API_BASE_URL}?lat={lat}&lon={lon}&apikey={api_key}&format=json"
-    )
+    url = f"{API_BASE_URL}?lat={lat}&lon={lon}&apikey={api_key}&format=json"
+    if time_zone:
+        url += f"&tz={quote(time_zone, safe='')}"
     async with session.get(
         url, timeout=aiohttp.ClientTimeout(total=API_TIMEOUT_SECONDS)
     ) as resp:
@@ -75,8 +80,11 @@ class MeteoblueCoordinator(DataUpdateCoordinator[dict[str, Any]]):
             raise UpdateFailed("Meteoblue not configured (missing API key or coordinates)")
 
         try:
+            time_zone = self.hass.config.time_zone
             async with aiohttp.ClientSession() as session:
-                data = await _fetch_meteoblue(self._api_key, lat, lon, session)
+                data = await _fetch_meteoblue(
+                    self._api_key, lat, lon, session, time_zone=time_zone
+                )
         except aiohttp.ClientError as err:
             raise UpdateFailed(f"API request failed: {err}") from err
 
