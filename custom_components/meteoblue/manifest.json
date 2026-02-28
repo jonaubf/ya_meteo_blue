@@ -1,12 +1,12 @@
 {
   "domain": "meteoblue",
   "name": "Meteoblue",
-  "codeowners": ["@weatherblue"],
+  "codeowners": ["@jonaubf"],
   "config_flow": true,
-  "documentation": "https://github.com/weatherblue/weatherblue",
+  "documentation": "https://github.com/jonaubf/ya_meteo_blue",
   "integration_type": "service",
   "iot_class": "cloud_polling",
-  "issue_tracker": "https://github.com/weatherblue/weatherblue/issues",
+  "issue_tracker": "https://github.com/jonaubf/ya_meteo_blue/issues",
   "requirements": [],
   "version": "1.0.0"
 }
