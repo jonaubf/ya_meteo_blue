@@ -1,0 +1,43 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Meteoblue Weather",
+        "description": "Get a free API key (100,000 requests/year) from http://meteoblue.com. You can use your Home Assistant home coordinates or enter custom latitude/longitude.",
+        "data": {
+          "api_key": "API Key",
+          "use_home_coordinates": "Use Home Assistant location",
+          "latitude": "Latitude",
+          "longitude": "Longitude"
+        },
+        "data_description": {
+          "api_key": "Your Meteoblue API key.",
+          "use_home_coordinates": "Use the coordinates configured in Home Assistant (Settings > System > General).",
+          "latitude": "Latitude (-90 to 90). Only used when not using home location.",
+          "longitude": "Longitude (-180 to 180). Only used when not using home location."
+        }
+      }
+    },
+    "error": {
+      "invalid_api_key": "Invalid API key",
+      "cannot_connect": "Could not connect to Meteoblue API",
+      "invalid_coordinates": "Invalid latitude or longitude"
+    },
+    "abort": {
+      "already_configured": "This integration is already configured"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Meteoblue options",
+        "description": "Change the location used for weather data.",
+        "data": {
+          "use_home_coordinates": "Use Home Assistant location",
+          "latitude": "Latitude",
+          "longitude": "Longitude"
+        }
+      }
+    }
+  }
+}
