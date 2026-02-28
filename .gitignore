@@ -8,6 +8,12 @@ __pycache__/
 .eggs/
 dist/
 build/
+.venv/
+venv/
+env/
+.env
+.env.local
+*.egg
 
 # IDE / OS
 .idea/
